@@ -14,7 +14,6 @@ def connect():
 def deleteMatches():
     """Remove all the match records from the database."""
 
-
 def deletePlayers():
     """Remove all the player records from the database."""
 

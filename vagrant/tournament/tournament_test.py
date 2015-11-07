@@ -123,13 +123,7 @@ def testPairings():
         raise ValueError(
             "After one match, players with one win should be paired.")
     print "8. After one match, players with one win are paired."
-    deleteMatches()
-    deletePlayers()
-    registerPlayer("Twilight Sparkle")
-    registerPlayer("Fluttershy")
-    registerPlayer("Applejack")
-    registerPlayer("Pinkie Pie")
-    
+
 
 def testPreventRemarches():
     deleteMatches()
@@ -141,6 +135,7 @@ def testPreventRemarches():
     standings = playerStandings()
     [id1, id2, id3, id4] = [row[0] for row in standings]
     reportMatch(id1, id2)
+    reportMatch(id3, id4, True)
     pairings = swissPairings()
     [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4)] = pairings
     incorrect_pairs = frozenset([id1,id2])
@@ -148,7 +143,36 @@ def testPreventRemarches():
     if incorrect_pairs == actual_pairs:
         raise ValueError(
             "After matches, prevent should rematches between players.")
-    print "9. After matches, rematches between players."
+    print "9. (1)Result can be draw.(2)After matches, rematches between players."
+
+def testDifferentTournament():
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Twilight Sparkle")
+    registerPlayer("Fluttershy")
+    registerPlayer("Applejack")
+    registerPlayer("Pinkie Pie")
+    standings = playerStandings()
+    [id1, id2, id3, id4] = [row[0] for row in standings]
+    reportMatch(id1, id2, 1)
+    reportMatch(id3, id4, 1)
+    reportMatch(id1, id4, 2)
+    reportMatch(id2, id3, 2)
+    pairings1 = swissPairings(1)
+    pairings2 = swissPairings(2)
+    if len(pairings1) != 2 or len(pairings2) != 2:
+        raise ValueError(
+            "For four players in each rournament, swissPairings should return two pairs.")
+    [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4)] = pairings1
+    correct_pairs1 = set([frozenset([id1, id3]), frozenset([id2, id4])])
+    actual_pairs1 = set([frozenset([pid1, pid2]), frozenset([pid3, pid4])])
+    [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4)] = pairings2
+    correct_pairs2 = set([frozenset([id1, id2]), frozenset([id4, id3])])
+    actual_pairs2 = set([frozenset([pid1, pid2]), frozenset([pid3, pid4])])
+    if correct_pairs1 != actual_pairs1 or correct_pairs2 != actual_pairs2:
+        raise ValueError(
+            "After one match, players with one win should be paired in each tournament.")
+    print "10. In different tournaments, players are paired correctly."
 
 
 if __name__ == '__main__':
@@ -161,6 +185,8 @@ if __name__ == '__main__':
     testReportMatches()
     testPairings()
     testPreventRemarches()
+    testDifferentTournament()
     print "Success!  All tests pass!"
+
 
 

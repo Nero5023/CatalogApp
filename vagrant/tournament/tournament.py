@@ -54,7 +54,6 @@ def registerPlayer(name):
     conn.commit()
     conn.close()
 
-
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
 
@@ -70,13 +69,29 @@ def playerStandings():
     """
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute('''SELECT * FROM ordered_players''')
+    cursor.execute("SELECT id, name, wins, matches FROM ordered_players")
+    results = cursor.fetchall()
+    conn.close()
+    for row in results:
+        if row[2] == None:
+            index = results.index(row)
+            results[index] = (row[0], row[1], 0, row[3])
+    # print results
+    return results
+
+
+def playerStandingsInTournament(tournament_id = 1):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute(r'''SELECT id, name, wins, matches  FROM ordered_players 
+                       WHERE tournament_id = %d'''
+                    %tournament_id)
     results = cursor.fetchall()
     conn.close()
     return results
 
 
-def reportMatch(winner, loser, is_draw = False):
+def reportMatch(winner, loser, tournament_id = 1, is_draw = False):
     """Records the outcome of a single match between two players.
 
     Args:
@@ -87,23 +102,31 @@ def reportMatch(winner, loser, is_draw = False):
     conn = connect()
     cursor = conn.cursor()
     next_matches_id = getMaxMatchId() + 1
-    next_round = getMaxRound(winner) + 1
+    next_round = getMaxRound(winner, tournament_id) + 1
     if is_draw:
-        cursor.execute('''INSERT INTO matches(player_id, is_winner, round, match_id)
-                       VALUES(%d, FALSE, %d, %d)'''%(winner, next_round, next_matches_id))
+        cursor.execute(r'''INSERT INTO matches(player_id, is_winner, round, match_id, 
+                                               tournament_id)
+                       VALUES(%d, FALSE, %d, %d, %d)'''
+                       %(winner, next_round, next_matches_id, tournament_id))
     
-        cursor.execute('''INSERT INTO matches(player_id, is_winner, round, match_id)
-                       VALUES(%d, FALSE, %d, %d)'''%(loser, next_round, next_matches_id))
+        cursor.execute(r'''INSERT INTO matches(player_id, is_winner, round, match_id,
+                                               tournament_id)
+                       VALUES(%d, FALSE, %d, %d, %d)'''
+                       %(loser, next_round, next_matches_id, tournament_id))
     else:
-        cursor.execute('''INSERT INTO matches(player_id, is_winner, round, match_id)
-                       VALUES(%d, TRUE, %d, %d)'''%(winner, next_round, next_matches_id))
+        cursor.execute(r'''INSERT INTO matches(player_id, is_winner, round, match_id,
+                                               tournament_id)
+                       VALUES(%d, TRUE, %d, %d, %d)'''
+                       %(winner, next_round, next_matches_id, tournament_id))
     
-        cursor.execute('''INSERT INTO matches(player_id, is_winner, round, match_id)
-                       VALUES(%d, FALSE, %d, %d)'''%(loser, next_round, next_matches_id))
+        cursor.execute(r'''INSERT INTO matches(player_id, is_winner, round, match_id,
+                                               tournament_id)
+                       VALUES(%d, FALSE, %d, %d, %d)'''
+                       %(loser, next_round, next_matches_id, tournament_id))
     conn.commit()
  
  
-def swissPairings():
+def swissPairings(tournament_id = 1):
     """Returns a list of pairs of players for the next round of a match.
   
     Assuming that there are an even number of players registered, each player
@@ -120,14 +143,15 @@ def swissPairings():
     """
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute('''SELECT id, name , wins FROM ordered_players''')
+    cursor.execute(r'''SELECT id, name , wins FROM ordered_players 
+                       WHERE tournament_id = %d'''%tournament_id)
     ordered_players = cursor.fetchall()
     #Handle situation of odd number of players
     if len(ordered_players)%2 == 1:
         print 'odd number'
         last_ndex = len(ordered_players)-1
         random_index = random.randint(0,lastIndex)
-        while (checkHavedSkipped(random_index) == True):
+        while (checkHavedSkipped(random_index, tournament_id) == True):
             random_index = random.randint(0,lastIndex)
         ordered_players.pop(random_index)
     paris_of_players = []
@@ -136,7 +160,7 @@ def swissPairings():
         k = 2
         id1 = ordered_players[2*i][0]
         id2 = ordered_players[2*i+1][0]
-        while ((i+k) < len(ordered_players) and checkHaveMatched(id1, id2)):
+        while ((i+k) < len(ordered_players) and checkHaveMatched(id1, id2, tournament_id)):
             exchange(ordered_players, i+1, i+k)
             id2 = ordered_players[2*i+1][0]
             k = k+1
@@ -148,7 +172,7 @@ def swissPairings():
     return paris_of_players
 
 
-def getMaxRound(player_id):
+def getMaxRound(player_id, tournament_id):
     """Retuen the max round of the tournament.
 
     Reruens:
@@ -158,8 +182,9 @@ def getMaxRound(player_id):
     """
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute("SELECT max(round) FROM matches WHERE player_id = %s"
-                   %player_id)
+    cursor.execute(r'''SELECT max(round) FROM matches 
+                        WHERE player_id = %s and tournament_id = %d'''
+                    %(player_id, tournament_id))
     results = cursor.fetchall()
     conn.close()
     max_round = results[0][0]
@@ -195,7 +220,7 @@ def exchange(list, index1, index2):
     list[index1] = list[index2]
     list[index2] = temp 
 
-def checkHaveMatched(player_id1, player_id2):
+def checkHaveMatched(player_id1, player_id2, tournament_id):
     """Check if two players have matched
 
     Args:
@@ -207,9 +232,10 @@ def checkHaveMatched(player_id1, player_id2):
     conn = connect()
     cursor = conn.cursor()
     cursor.execute(r'''SELECT * FROM V_matches
-                       WHERE (winner_id = %d and loser_id = %d) or 
-                             (winner_id = %d and loser_id = %d)'''
-                             %(player_id1, player_id2, player_id2, player_id1))
+                       WHERE ((winner_id = %d and loser_id = %d) or 
+                             (winner_id = %d and loser_id = %d)) and 
+                             tournament_id = %d'''
+                             %(player_id1, player_id2, player_id2, player_id1, tournament_id))
     result = cursor.fetchall()
     conn.close()
     if len(result) == 0:
@@ -217,7 +243,7 @@ def checkHaveMatched(player_id1, player_id2):
     else:
         return True
 
-def checkHavedSkipped(player_id):
+def checkHavedSkipped(player_id, tournament_id):
     """Check if the player have skipped round once
         if haven't skipped round once, insert a row in database
     Args:
@@ -229,7 +255,8 @@ def checkHavedSkipped(player_id):
     conn = connect()
     cursor = conn.cursor()
     cursor.execute(r'''SELECT player_id, count(*) as num FROM matches
-                        GROUP BY match_id HAVING num = 1''')
+                       WHERE tournament_id = %d
+                       GROUP BY match_id HAVING num = 1'''%tournament_id)
     results = cursor.fetchall()
     conn.close()
     ids = [row[0] for row in results]
@@ -239,7 +266,9 @@ def checkHavedSkipped(player_id):
         conn = connect()
         cursor = conn.cursor()
         next_matches_id = getMaxMatchId() + 1
-        next_round = getMaxRound(winner) + 1
-        cursor.execute(r'''INSERT INTO matches(player_id, match_id, is_winner, round)
-                           VALUES(%d, %d, TRUE, %d)'''%(player_id, next_matches_id, next_round))
+        next_round = getMaxRound(winner, tournament_id) + 1
+        cursor.execute(r'''INSERT INTO matches(player_id, match_id, is_winner, 
+                                               round, tournament_id)
+                           VALUES(%d, %d, TRUE, %d, %d)'''
+                       %(player_id, next_matches_id, next_round, tournament_id))
         return False

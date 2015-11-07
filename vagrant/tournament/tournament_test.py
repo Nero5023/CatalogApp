@@ -123,6 +123,32 @@ def testPairings():
         raise ValueError(
             "After one match, players with one win should be paired.")
     print "8. After one match, players with one win are paired."
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Twilight Sparkle")
+    registerPlayer("Fluttershy")
+    registerPlayer("Applejack")
+    registerPlayer("Pinkie Pie")
+    
+
+def testPreventRemarches():
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Twilight Sparkle")
+    registerPlayer("Fluttershy")
+    registerPlayer("Applejack")
+    registerPlayer("Pinkie Pie")
+    standings = playerStandings()
+    [id1, id2, id3, id4] = [row[0] for row in standings]
+    reportMatch(id1, id2)
+    pairings = swissPairings()
+    [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4)] = pairings
+    incorrect_pairs = frozenset([id1,id2])
+    actual_pairs = frozenset([pid1, pid2])
+    if incorrect_pairs == actual_pairs:
+        raise ValueError(
+            "After matches, prevent should rematches between players.")
+    print "9. After matches, rematches between players."
 
 
 if __name__ == '__main__':
@@ -134,6 +160,7 @@ if __name__ == '__main__':
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()
+    testPreventRemarches()
     print "Success!  All tests pass!"
 
 

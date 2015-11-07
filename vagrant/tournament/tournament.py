@@ -81,6 +81,20 @@ def playerStandings():
 
 
 def playerStandingsInTournament(tournament_id = 1):
+    """Returns a list of the players and their win records, sorted by wins.
+
+    The first entry in the list should be the player in first place, or a player
+    tied for first place if there is currently a tie.
+
+    Returns:
+      A list of tuples, each of which contains (id, name, wins, matches):
+        id: the player's unique id (assigned by the database)
+        name: the player's full name (as registered)
+        wins: the number of matches the player has won
+        matches: the number of matches the player has played
+    Args:
+      tournament_id: In which tournament to look up the players standings
+    """
     conn = connect()
     cursor = conn.cursor()
     cursor.execute(r'''SELECT id, name, wins, matches  FROM ordered_players 

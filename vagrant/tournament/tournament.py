@@ -6,32 +6,36 @@
 import psycopg2
 import random
 
-def connect():
+def connect(database_name = "tournament"):
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+    try:
+        conn = psycopg2.connect("dbname={}".format(database_name))
+        cursor = conn.cursor()
+        return conn, cursor
+    except:
+        print('''error message: Fail to connect to "%s"'''%tournament)
 
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    conn = connect()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM matches")
+    conn, cursor = connect()
+    # cursor.execute("DELETE FROM matches")
+    cursor.execute("TRUNCATE matches")
     conn.commit()
     conn.close()
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    conn = connect()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM players")
+    conn, cursor = connect()
+    # cursor.execute("DELETE FROM players")
+    cursor.execute("TRUNCATE players CASCADE")
     conn.commit()
     conn.close()
 
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute("SELECT count(*) as num FROM players")
     results = cursor.fetchall()
     conn.close()
@@ -47,8 +51,7 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute(r'''INSERT INTO players (name) 
                        VALUES(%s)''', (name,))
     conn.commit()
@@ -67,8 +70,7 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute("SELECT id, name, wins, matches FROM ordered_players")
     results = cursor.fetchall()
     conn.close()
@@ -95,8 +97,7 @@ def playerStandingsInTournament(tournament_id = 1):
     Args:
       tournament_id: In which tournament to look up the players standings
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute(r'''SELECT id, name, wins, matches  FROM ordered_players 
                        WHERE tournament_id = %d'''
                     %tournament_id)
@@ -113,8 +114,7 @@ def reportMatch(winner, loser, tournament_id = 1, is_draw = False):
       loser:  the id number of the player who lost
       is_draw: if the game is draw, default value is False
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     next_matches_id = getMaxMatchId() + 1
     next_round = getMaxRound(winner, tournament_id) + 1
     if is_draw:
@@ -155,8 +155,7 @@ def swissPairings(tournament_id = 1):
         id2: the second player's unique id
         name2: the second player's name
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute(r'''SELECT id, name , wins FROM ordered_players 
                        WHERE tournament_id = %d'''%tournament_id)
     ordered_players = cursor.fetchall()
@@ -194,8 +193,7 @@ def getMaxRound(player_id, tournament_id):
     Args:
         the player_id of who will play the game
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute(r'''SELECT max(round) FROM matches 
                         WHERE player_id = %s and tournament_id = %d'''
                     %(player_id, tournament_id))
@@ -213,8 +211,7 @@ def getMaxMatchId():
     Reruens:
       The max match_id of the current state.
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute("SELECT max(match_id) FROM matches")
     results = cursor.fetchall()
     conn.close()
@@ -243,8 +240,7 @@ def checkHaveMatched(player_id1, player_id2, tournament_id):
     Returns:
         if two players have matched
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute(r'''SELECT * FROM V_matches
                        WHERE ((winner_id = %d and loser_id = %d) or 
                              (winner_id = %d and loser_id = %d)) and 
@@ -266,8 +262,7 @@ def checkHavedSkipped(player_id, tournament_id):
     Returns:
         if two player have skipped round once
     """
-    conn = connect()
-    cursor = conn.cursor()
+    conn, cursor = connect()
     cursor.execute(r'''SELECT player_id, count(*) as num FROM matches
                        WHERE tournament_id = %d
                        GROUP BY match_id HAVING num = 1'''%tournament_id)

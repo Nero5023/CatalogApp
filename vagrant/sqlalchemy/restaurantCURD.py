@@ -11,15 +11,26 @@ session = DBSession()
 
 def listAllRestaurant():
 	restaurants = session.query(Restaurant).all()
-	names = []
-	for restaurant in restaurants:
-		names.append(restaurant.name)
-	return names
+	# names = []
+	# for restaurant in restaurants:
+	# 	names.append(restaurant.name)
+	# return 
+	return restaurants
  
 def createNewRestaurant(new_name):
 	new_resaturant = Restaurant(name=new_name)
 	session.add(new_resaturant)
 	session.commit()
-	
 
-print listAllRestaurant()
+def restaurantWithID(ID):
+	restaurant = session.query(Restaurant).filter_by(id = ID).one()
+	return restaurant
+	
+def updateRestaurant(new_restaurant):
+	session.add(new_restaurant)
+	session.commit()
+
+def deleteRestaurantWithID(ID):
+	restaurantToDelete = restaurantWithID(ID)
+	session.delete(restaurantToDelete)
+	session.commit()

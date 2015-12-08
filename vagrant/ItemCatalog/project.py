@@ -23,11 +23,12 @@ def showCategories():
 	return render_template('categories.html', categories=categories,
 							items=items)
 
-# # Show all the items of one category
-# @app.route('/category/<path:category_name>/')
-# @app.route('/category/<path:category_name>/items/')
-# def showCategoryItems():
-# 	items = session.query(Item).order_by(desc(Item.date_time))
+# Show all the items of one category
+@app.route('/category/<path:category_name>/')
+@app.route('/category/<path:category_name>/items/')
+def showCategoryItems():
+	items = session.query(Item).order_by(desc(Item.date_time))
+	
 
 # @app.route('/category/<path:category_name>/<path:item_name>')
 # def showItemDetail():

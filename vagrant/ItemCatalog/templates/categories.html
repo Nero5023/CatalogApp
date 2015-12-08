@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='bootstrap/bootstrap.min.css')}}">
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-3">
+				<h1>Catalog</h1>
+				<ul>
+					{% for catalog in categories%}
+					<li>{{catalog.name}}</li>
+					{% endfor %}
+				</ul>
+			</div>
+			<div class="col-md-9">
+				<h1>Lastest Items</h1>
+				<ul>
+					{% for item in items %}
+					<li>{{item.name + '(' + item.category.name + ')'}}</li>
+					{% endfor %}
+				</ul>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

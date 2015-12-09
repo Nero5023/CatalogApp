@@ -15,7 +15,9 @@
 		<h1>{{category_name}} Items({{items.count()}} items)</h1>
 		<ul>
 			{% for item in items %}
+			<a href="{{url_for('showItemDetail',category_name=item.category.name,item_name=item.name)}}">
 			<li>{{item.name}}</li>
+			</a>
 			{% endfor %}
 		</ul>
 	</div>

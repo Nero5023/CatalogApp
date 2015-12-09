@@ -34,11 +34,12 @@ def showCategoryItems(category_name):
 			category_name=category_name, items=items)
 
 
-# @app.route('/category/<path:category_name>/<path:item_name>')
-# def showItemDetail():
-# 	category = session.query(Category).filter_by(name=category_name).one()
-# 	items = session.query(Item).filter_by(category_id=category.id, 
-# 											name=item_name).all()
+@app.route('/category/<path:category_name>/<path:item_name>/')
+def showItemDetail(category_name,item_name):
+	category = session.query(Category).filter_by(name=category_name).one()
+	item = session.query(Item).filter_by(category_id=category.id, 
+											name=item_name).one()
+	return render_template('itemdetail.html', item=item)
 
 # @app.route('/')
 

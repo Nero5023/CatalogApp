@@ -15,7 +15,9 @@
 		<h1>Lastest Items</h1>
 		<ul>
 			{% for item in items %}
+			<a href="{{url_for('showItemDetail', category_name=item.category.name,item_name=item.name)}}">
 			<li>{{item.name + '(' + item.category.name + ')'}}</li>
+			</a>
 			{% endfor %}
 		</ul>
 	</div>

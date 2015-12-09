@@ -1,0 +1,42 @@
+{% extends "main.html" %}
+{% block content %}
+	<h1>Edit Menu Item</h1>
+	
+		<form action=
+		{% if isEdit %}
+		"{{url_for('editItem', category_name=category_name, item_name=item.name)}}"
+		{% else %}
+		"{{url_for('newItem')}}"
+		{% endif %}
+		, method="POST">
+		<p>Title</p>
+		<input type="text" size="30" name="name"
+		{% if isEdit %}
+		 placeholder="{{item.name}}"
+		{% endif %}>
+		<p>Description</p>
+		<input type="text" size="30" name="description" 
+		{% if isEdit %}
+		placeholder="{{item.description}}"
+		{% endif %}>
+		<p>Category</p>
+		<select name="category">
+			{% for category in categories %}
+				{% if isEdit and category.name == category_name%}
+				<option value="{{category.name}}" selected="selected">{{category.name}}</option>
+				{% else %}
+				<option value="{{category.name}}">{{category.name}}</option>
+				{% endif %}
+
+			{% endfor %}
+		</select>
+		<input type="submit" value="Submit">
+		<a href=
+		{% if isEdit %}
+		"{{url_for('showItemDetail',category_name=category_name, item_name=item.name)}}"
+		{% else %}
+		"{{url_for('showCategories')}}"
+		{% endif %}
+		>Cancle</a>
+	</form>
+{% endblock %}

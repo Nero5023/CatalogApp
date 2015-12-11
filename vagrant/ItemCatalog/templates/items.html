@@ -12,6 +12,7 @@
 		</ul>
 	</div>
 	<div class="col-md-9">
+		<a href="{{url_for('newItem')}}">Add Item</a>
 		<h1>{{category_name}} Items({{items.count()}} items)</h1>
 		<ul>
 			{% for item in items %}

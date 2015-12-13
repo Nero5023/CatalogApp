@@ -40,6 +40,7 @@ class Item(Base):
 	category = relationship(Category)
 	user_id = Column(Integer, ForeignKey('user.id'))
 	user = relationship(User)
+	picture = Column(String(250))
 
 	@property
 	def serialize(self):

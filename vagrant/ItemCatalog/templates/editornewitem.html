@@ -8,7 +8,7 @@
 		{% else %}
 		"{{url_for('newItem')}}"
 		{% endif %}
-		, method="POST">
+		method="POST" enctype="multipart/form-data">
 		<p>Title</p>
 		<input type="text" size="30" name="name"
 		{% if isEdit %}
@@ -30,6 +30,13 @@
 
 			{% endfor %}
 		</select>
+		{% if isEdit %}
+			<p>NewPicture</p>
+		{% else %}
+			<p>Picture</p>
+		{% endif %}
+		
+		<input type="file" name='file'></br>
 		<input type="submit" value="Submit">
 		<a href=
 		{% if isEdit %}

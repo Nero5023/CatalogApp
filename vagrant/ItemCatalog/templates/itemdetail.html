@@ -1,5 +1,6 @@
 {% extends "main.html" %}
 {% block content %}
+<div class="row">
 <div class="col-md-9">
 	<h1>
 		{{item.name}}
@@ -9,5 +10,6 @@
 		Edit
 	</a> |
 	<a href="{{url_for('deleteItem', category_name=item.category.name, item_name=item.name)}}">Delete</a>
+</div>
 </div>
 {% endblock %}

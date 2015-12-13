@@ -11,13 +11,20 @@ import httplib2
 import json
 from flask import make_response
 import requests, string
-
+import xml.dom.minidom as minidom
+import codecs
+import os
+from werkzeug import secure_filename
+from flask import send_from_directory
 
 app = Flask(__name__)
 
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = "ItemCatalog"
+UPLOAD_FOLDER = 'static/Uploads'
+ALLOWED_EXTENSIONS = set(['png','jpg','jpeg','git'])
+
 
 engine = create_engine('sqlite:///categoryitems.db')
 Base.metadata.bind = engine
@@ -33,7 +40,11 @@ session = DBSession()
 def showCategories():
 	categories = session.query(Category).order_by(asc(Category.name)).all()
 	items = session.query(Item).order_by(desc(Item.date_time)).limit(9)
-	return render_template('categories.html', categories=categories,
+	if login_session.get('user_id') is None:
+		return render_template('publiccategories.html', categories=categories,
+							items=items)
+	else:
+		return render_template('categories.html', categories=categories,
 							items=items)
 
 @app.route('/login')
@@ -251,7 +262,11 @@ def showCategoryItems(category_name):
 	category = session.query(Category).filter_by(name=category_name).one()
 	items = session.query(Item).filter_by(category_id=category.id)
 	categories = session.query(Category).order_by(asc(Category.name)).all()
-	return render_template('items.html', categories=categories, 
+	if login_session.get('user_id') is None:
+		return render_template('publicitems.html', categories=categories, 
+			category_name=category_name, items=items)
+	else:
+		return render_template('items.html', categories=categories, 
 			category_name=category_name, items=items)
 
 
@@ -260,14 +275,21 @@ def showItemDetail(category_name,item_name):
 	category = session.query(Category).filter_by(name=category_name).one()
 	item = session.query(Item).filter_by(category_id=category.id, 
 											name=item_name).one()
-	return render_template('itemdetail.html', item=item)
+	if login_session.get('user_id') is not None and login_session['user_id'] == item.user_id:
+		return render_template('itemdetail.html', item=item)
+	else:
+		return render_template('publicitemdetail.html', item=item)
 
 
 @app.route('/category/<path:category_name>/<path:item_name>/edit/', methods=['GET','POST'])
 def editItem(category_name, item_name):
+	if 'username' not in login_session:
+		return redirect('/login')
 	category = session.query(Category).filter_by(name=category_name).one()
 	editItem = session.query(Item).filter_by(category_id=category.id, 
 											name=item_name).one()
+	if editItem.user_id != login_session['user_id']:
+		return alertScript('edit', 'item')
 	if request.method == 'POST':
 		if request.form['name']:
 			editItem.name = request.form['name']
@@ -277,6 +299,10 @@ def editItem(category_name, item_name):
 			newCategory = session.query(Category).filter_by(
 							name=request.form['category']).one()
 			editItem.category = newCategory
+		if request.files['file']:
+			file_path = uploadFile()
+			editItem.picture = file_path
+
 		session.add(editItem)
 		session.commit()
 		flash('Item Successfully Edited')
@@ -289,16 +315,21 @@ def editItem(category_name, item_name):
 
 @app.route('/newitem/', methods=['GET','POST'])
 def newItem():
+	if 'username' not in login_session:
+		return redirect('/login')
 	if request.method == 'POST':
 		# error message
 		category = session.query(Category).filter_by(
 						name=request.form['category']).one()
 		time = datetime.now()
+		user = session.query(User).filter_by(id=login_session['user_id']).one()
+		file_path = uploadFile() 
 		newItem = Item(name=request.form['name'], date_time=time,
-				description=request.form['description'], category=category)
+				description=request.form['description'], category=category,
+				user=user, picture=file_path)
 		session.add(newItem)
+		flash("%s Successfully Added" % newItem.name)
 		session.commit()
-		flash("%s Successfully Added" % newitem.name)
 		return redirect(url_for('showCategories'))
 	else:
 		categories = session.query(Category).order_by(asc(Category.name)).all()
@@ -307,10 +338,15 @@ def newItem():
 
 @app.route('/category/<path:category_name>/<path:item_name>/delete/', methods=['GET','POST'])
 def deleteItem(category_name,item_name):
+	if 'username' not in login_session:
+		return redirect('/login')
+	category = session.query(Category).filter_by(name=category_name).one()
+	# maybe some problem
+	itemToDelete = session.query(Item).filter_by(category_id=category.id, 
+										name=item_name).one()
+	if itemToDelete.user_id != login_session['user_id']:
+		return alertScript('delete', 'item')
 	if request.method == 'POST':
-		category = session.query(Category).filter_by(name=category_name).one()
-		itemToDelete = session.query(Item).filter_by(category_id=category.id, 
-											name=item_name).one()
 		session.delete(itemToDelete)
 		session.commit()
 		print 'success'
@@ -319,6 +355,17 @@ def deleteItem(category_name,item_name):
 	else:
 		return render_template('deleteitem.html',
 					category_name=category_name,item_name=item_name)
+
+
+def getCategoiresDic():
+	categories = session.query(Category).order_by(asc(Category.name)).all()
+	categoriesDic = []
+	for category in categories:
+		items = session.query(Item).filter_by(category_id=category.id).all()
+		dic = category.serialize
+		dic['Item'] = [item.serialize for item in items]
+		categoriesDic.append(dic)
+
 
 @app.route('/catalog.json')
 def categoriesJSON():
@@ -329,8 +376,73 @@ def categoriesJSON():
 		dic = category.serialize
 		dic['Item'] = [item.serialize for item in items]
 		jsonlist.append(dic)
+
+	print jsonlist
 	return jsonify(category=jsonlist)
 
+@app.route('/catalog.xml')
+def categoriesXML():
+	categories = session.query(Category).order_by(asc(Category.name)).all()
+	xmlList = []
+	for category in categories:
+		items = session.query(Item).filter_by(category_id=category.id).all()
+		dic = category.serialize
+		dic['Item'] = [item.serialize for item in items]
+		xmlList.append(dic)
+
+
+	impl = minidom.getDOMImplementation()
+	dom = impl.createDocument(None, 'catalog', None)
+	root = dom.documentElement
+	# root = doc.createElement('categories')
+	# root = ET.Element('categories')
+	
+	for categoryDic in xmlList:
+		category = dom.createElement('category')
+
+		category_name = dom.createElement('name')
+		category_name_text = dom.createTextNode(categoryDic['name'])
+		category_name.appendChild(category_name_text)
+		category.appendChild(category_name)
+
+		category_id = dom.createElement('id')
+		category_id_text = dom.createTextNode(repr(categoryDic['id']))
+		category_id.appendChild(category_id_text)
+		category.appendChild(category_id)
+
+		items = dom.createElement('items')
+
+		for itemDic in categoryDic['Item']:
+			item = dom.createElement('item')
+
+			item_title = dom.createElement('title')
+			item_title_text = dom.createTextNode(itemDic['title'])
+			item_title.appendChild(item_title_text)
+			item.appendChild(item_title)
+
+			item_id = dom.createElement('id')
+			item_id_text = dom.createTextNode(repr(itemDic['id']))
+			item_id.appendChild(item_id_text)
+			item.appendChild(item_id)
+
+			item_description = dom.createElement('description')
+			item_description_text = dom.createElement(itemDic['description'])
+			item_description.appendChild(item_description_text)
+			item.appendChild(item_description)
+
+			item_category_id = dom.createElement('category_id')
+			item_category_id_text = dom.createTextNode(repr(itemDic['category_id']))
+			item_category_id.appendChild(item_category_id_text)
+			item.appendChild(item_category_id)
+
+			items.appendChild(item)
+
+		category.appendChild(items)
+		root.appendChild(category)
+
+
+	print dom.toprettyxml()
+	return dom.toprettyxml()
 
 @app.route('/disconnect')
 def disconnect():
@@ -354,19 +466,49 @@ def disconnect():
         flash("You were not logged in")
         return redirect(url_for('showCategories'))
 
-# @app.route('/delete')
-# def delelte():
-#     del login_session['gplus_id']
-# #     # del login_session['username']
-# #     del login_session['email']
-# #     del login_session['picture']
-# #     del login_session['user_id']
-#     response = make_response(json.dumps('Successfully disconnected.'), 200)
-#     response.headers['Content-Type'] = 'application/json'
-#     return response
 
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.',1)[1] in ALLOWED_EXTENSIONS
+
+def uploadFile():
+		file = request.files['file']
+		if file and allowed_file(file.filename):
+			filename = secure_filename(file.filename)
+			path = url_for('uploaded_file',filename=filename)
+			# check in database if have the same name of the picture
+			if session.query(Item).filter_by(picture=path).all() != []:
+				filename = '0' + filename
+				path = url_for('uploaded_file',filename=filename)
+			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+			print url_for('uploaded_file',filename=filename)
+			return url_for('uploaded_file',filename=filename)
+		return None
+
+@app.route('/upload/<filename>')
+def uploaded_file(filename):
+	return send_from_directory('static/Uploads', filename)
+
+
+def alertScript(method, name):
+    return "<script>function alertFunc() {alert('You are not authorized to %s \
+        this %s. Please create your own %s in order to %s.');}\
+        </script><body onload='alertFunc()'>" % (method, name, name, method)
+
+@app.route('/delete')
+def deleInfo():
+	del login_session['username']
+	del login_session['email']
+	del login_session['picture']
+	del login_session['user_id']
+	del login_session['provider']
+	del login_session['facebook_id']
+	response = make_response(json.dumps('Invalid state parameter.'), 200)
+	response.headers['Content-Type'] = 'application/json'
+	return response
 
 if __name__ == '__main__':
 	app.secret_key = 'super_secret_key'
+	app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
+	app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 	app.debug = True
 	app.run(host='0.0.0.0', port=8000)

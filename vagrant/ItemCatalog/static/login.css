@@ -1,0 +1,65 @@
+div#login {
+	background: #eaedf1;
+	padding-bottom: 40px
+}
+
+body.login .small {
+	text-align: center;
+	font-size: 14px
+}
+
+body.login .small a {
+	color: #777
+}
+
+body.login hr {
+	margin: 20px 0
+}
+
+body.login #login {
+	width: 300px;
+	padding: 60px 60px 40px;
+	background: #fff;
+	text-align: center;
+	margin: 40px auto 20px;
+	overflow: hidden;
+}
+
+body.login #login .errorlist {
+	margin: 0;
+	padding: 10px 70px;
+	list-style: none;
+	background: #e66f2d;
+	margin: 20px -70px 20px;
+	color: #fff;
+	font-weight: bold;
+	font-size: 13px
+}
+
+body.login #login img {
+	opacity: .25
+}
+
+body.login #login h1 {
+	font-size: 24px;
+	margin-bottom: 25px;
+	color: #7c838c;
+	font-weight: normal
+}
+
+body.login #login p {
+	color: #888
+}
+
+body.login #login .btn {
+	font-size: 14px
+}
+
+body.login #login form {
+	text-align: left;
+	padding: 0
+}
+
+body.login #login form input[type=submit] {
+	float: right
+}

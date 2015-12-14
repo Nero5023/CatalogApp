@@ -6,6 +6,9 @@
 		{{item.name}}
 	</h1>
 	<p>{{item.description}}</p>
+	{% if item.picture != None %}
+		<img src="{{item.picture}}">
+	{% endif %}
 	<a href="{{url_for('editItem', category_name=item.category.name, item_name=item.name)}}">
 		Edit
 	</a> |

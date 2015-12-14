@@ -22,7 +22,7 @@ app = Flask(__name__)
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = "ItemCatalog"
-UPLOAD_FOLDER = 'static/Uploads'
+UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = set(['png','jpg','jpeg','git'])
 
 
@@ -486,8 +486,11 @@ def uploadFile():
 
 @app.route('/upload/<filename>')
 def uploaded_file(filename):
-	return send_from_directory('static/Uploads', filename)
+	return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+@app.route('/categorybd/<filename>')
+def categorybd(filename):
+	return send_from_directory('static/categorybd',filename)
 
 def alertScript(method, name):
     return "<script>function alertFunc() {alert('You are not authorized to %s \

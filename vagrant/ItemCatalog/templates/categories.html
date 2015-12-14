@@ -1,17 +1,23 @@
 {% extends "main.html" %}
 {% block content %}
+
 <div class="row">
-	<div class="col-md-3">
-		<h1>Catalog</h1>
-		<ul>
+	<div class="sidebar col-md-3" role="navigation">
+		<div class="sidebar-header">Categories</div>
+		<div class="collapsed collapsible-content">
+			<div class="sidebar-login">
+				<a class="login-status-text" href="{{url_for('disconnect')}}">Logout</a>
+			</div>
+		</div>
+		<ul class="sidebar-menu list-unstyled">
 			{% for category in categories%}
 			<a href="{{url_for('showCategoryItems', category_name = category.name)}}">
-				<li>{{category.name}}</li>
+				<li class="{{category.name}} top-level-item"><strong>{{category.name}}</strong></li>
 			</a>
 			{% endfor %}
 		</ul>
 	</div>
-	<div class="col-md-9">
+	<div class="content col-md-9">
 		<a href="{{url_for('newItem')}}">Add Item</a>
 		<h1>Lastest Items</h1>
 		<ul>
@@ -23,4 +29,5 @@
 		</ul>
 	</div>
 </div>
+
 {% endblock %}

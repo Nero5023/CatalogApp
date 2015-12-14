@@ -5,7 +5,7 @@
   <!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
   </script>
-
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='login.css')}}">
 <script src="//apis.google.com/js/platform.js?onload=start"> </script>
 
 <!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
@@ -14,10 +14,12 @@
 </head>
 
 
-<body>  
+<body class="login">  
 
+<div id='login' style>
+  <h1>CatalogItem</h1>
 
-<!-- GOOGLE PLUS SIGN IN-->
+  <!-- GOOGLE PLUS SIGN IN-->
 
           
           <div id="signInButton">
@@ -31,6 +33,8 @@
             data-approvalprompt="force">
           </span>
         </div>
+
+<hr>
 
 <div id="result"></div>
 
@@ -127,6 +131,10 @@ function signInCallback(authResult) {
 
 
         </button>
+
+
+</div>
+
 
   </body>
 

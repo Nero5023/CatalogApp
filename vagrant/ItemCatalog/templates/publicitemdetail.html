@@ -5,5 +5,8 @@
 		{{item.name}}
 	</h1>
 	<p>{{item.description}}</p>
+	{% if item.picture != None %}
+		<img src="{{item.picture}}">
+	{% endif %}
 </div>
 {% endblock %}

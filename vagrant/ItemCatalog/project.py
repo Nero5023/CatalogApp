@@ -278,7 +278,8 @@ def showItemDetail(category_name,item_name):
 	if login_session.get('user_id') is not None and login_session['user_id'] == item.user_id:
 		return render_template('itemdetail.html', item=item)
 	else:
-		return render_template('publicitemdetail.html', item=item)
+		# return render_template('publicitemdetail.html', item=item)
+		return render_template('itemdetailtest.html', item=item)
 
 
 @app.route('/category/<path:category_name>/<path:item_name>/edit/', methods=['GET','POST'])

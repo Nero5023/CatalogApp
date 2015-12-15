@@ -2955,6 +2955,21 @@ html.no-js .tabulator .tabulator-content-container {
   background-color: #33691e;
 }
 
+.page.Baseball .active {
+  background-color: #33691e;
+  border-color:#33691e;
+}
+
+.page.Baseball .btn {
+  color: white;
+  background-color: #7cb342;
+  border-color:#7cb342;
+}
+
+
+
+
+
 .page.Basketball .sidebar {
   background-color: #fbc02d;
 }
@@ -2962,6 +2977,20 @@ html.no-js .tabulator .tabulator-content-container {
 .page.Basketball a:hover{
   background-color: #f57f17;
 }
+
+.page.Basketball .active {
+  background-color: #f57f17;
+  border-color:#f57f17;
+}
+
+.page.Basketball .btn {
+  color: white;
+  background-color: #fbc02d;
+  border-color:#fbc02d;
+}
+
+
+
 
 
 .page.Foosball .sidebar {
@@ -2972,6 +3001,18 @@ html.no-js .tabulator .tabulator-content-container {
   background-color: #3e2723;
 }
 
+.page.Foosball .active {
+  background-color: #3e2723;
+  border-color:#3e2723;
+}
+
+.page.Foosball .btn {
+  color: white;
+  background-color: #795548;
+  border-color:#795548;
+}
+
+
 
 .page.Frisbee .sidebar {
   background-color: #00bcd4;
@@ -2981,6 +3022,19 @@ html.no-js .tabulator .tabulator-content-container {
   background-color: #006064;
 }
 
+.page.Frisbee .active {
+  background-color: #006064;
+  border-color:#006064;
+}
+
+.page.Frisbee .btn {
+  color: white;
+  background-color: #00bcd4;
+  border-color:#00bcd4;
+}
+
+
+
 .page.Hockey .sidebar {
   background-color: #d84315;
 }
@@ -2988,6 +3042,20 @@ html.no-js .tabulator .tabulator-content-container {
 .page.Hockey a:hover{
   background-color: #bf360c;
 }
+
+.page.Hockey .active {
+  background-color: #bf360c;
+  border-color:#bf360c;
+}
+
+.page.Hockey .btn {
+  color: white;
+  background-color: #d84315;
+  border-color:#d84315;
+}
+
+
+
 
 .page.Rock .sidebar {
   background-color: #ffab40;
@@ -2997,6 +3065,20 @@ html.no-js .tabulator .tabulator-content-container {
   background-color: #ff6d00;
 }
 
+.page.Rock .active {
+  background-color: #ff6d00;
+  border-color:#ff6d00;
+}
+
+.page.Rock .btn {
+  color: white;
+  background-color: #ffab40;
+  border-color:#ffab40;
+}
+
+
+
+
 .page.Skating .sidebar {
   background-color: #4fc3f7;
 }
@@ -3004,6 +3086,20 @@ html.no-js .tabulator .tabulator-content-container {
 .page.Skating a:hover{
   background-color: #01579b;
 }
+
+.page.Skating .active {
+  background-color: #01579b;
+  border-color:#01579b;
+}
+
+.page.Skating .btn {
+  color: white;
+  background-color: #4fc3f7;
+  border-color:#4fc3f7;
+}
+
+
+
 
 .page.Snowboarding .sidebar {
   background-color: #0277bd;
@@ -3013,13 +3109,47 @@ html.no-js .tabulator .tabulator-content-container {
   background-color: #01579b;
 }
 
+.page.Snowboarding .active {
+  background-color: #01579b;
+  border-color:#01579b;
+}
+
+.page.Snowboarding .btn {
+  color: white;
+  background-color: #0277bd;
+  border-color:#0277bd;
+}
+
+.page.Snowboarding .btn {
+  color: white;
+  background-color: #01579b;
+  border-color:#01579b;
+}
+
+
+
+
+
 .page.Soccer .sidebar {
   background-color: #00695c;
 }
 
-.page.Soccer a:hover{
+.page.Soccer a:hover {
   background-color: #004d40;
 }
 
+.page.Soccer .active {
+  background-color: #004d40;
+  border-color:#004d40;
+}
+
+.page.Soccer .btn {
+  color: white;
+  background-color: #00695c;
+  border-color:#00695c;
+}
 
 
+.page h4:hover {
+  color: #ffffff;
+}

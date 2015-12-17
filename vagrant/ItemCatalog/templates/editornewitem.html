@@ -2,6 +2,8 @@
 <html>
 <head>
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='bootstrap/bootstrap.min.css')}}">
+	<script type="text/javascript" src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
+	<!-- <script type="text/javascript" src="{{url_for('static', filename='js/validation.js')}}"></script> -->
 </head>
 <body>
 <div class="container">
@@ -11,12 +13,12 @@
 	{% if isEdit %}
 	"{{url_for('editItem', category_name=category_name, item_name=item.name)}}"
 	{% else %}
-	"{{url_for('newItem')}}"
+	"{{url_for('newItem')}}" id='newItem'
 	{% endif %}
 	method="POST" enctype="multipart/form-data">
 		<div class="form-group">
 			<label for="TitleLabel">Title</label>
-			<input type="text" name="name" class="form-control" id="inputTitle"
+			<input type="text" name="name" class="form-control" id="inputField"
 			{% if isEdit %}
 			 placeholder="{{item.name}}"
 			{% endif %}>
@@ -31,7 +33,7 @@
 		</div>
 		<div class="form-group">
 			<label for="CategoryLabel">Category</label>
-			<select name="category" class="form-control">
+			<select name="category" class="form-control" id="category">
 				{% for category in categories %}
 					{% if isEdit and category.name == category_name%}
 					<option value="{{category.name}}" selected="selected">{{category.name}}</option>
@@ -50,7 +52,7 @@
 			{% endif %}
 			<input type="file" name='file'>
 		</div>
-			<button type="submit" class="btn btn-default">Submit</button>
+			<button type="submit" id="submit" class="btn btn-default">Submit</button>
 			<!-- <input type="submit" value="Submit"> -->
 			<a "btn btn-default" href=
 			{% if isEdit %}
@@ -63,4 +65,54 @@
 	</form>
 </div>
 </body>
+<script type="text/javascript">
+var $form = $("#newItem"),
+    $errorMsg = $("<span class='error'>This field is required..!!</span>"),
+    $errorMsgRepeat = $("<span class='error'>This item already exits..!!</span>");
+console.log($errorMsgRepeat)
+
+function checkIsExit(category_name, item_name) {
+	var url = '/check/' + category_name + '/' + item_name;
+	$.getJSON(url,function(data){
+		console.log(data.isExit);
+		return data.isExit;
+	});
+}
+
+$("#submit").on("click", function () {
+    // console.log('hello' + checkIsExit('Foosball','test'));
+    var toReturn = true;
+    $("#inputField", $form).each(function () {
+        if ($(this).val() == "") {
+            if (!$(this).data("error")) {
+                $(this).data("error", $errorMsg.clone().insertAfter($(this)));
+            }
+            toReturn = false;
+        }
+        else {
+        	toReturn = false;
+        	var url = '/check/' + $("#category").val() + '/' + $('#inputField').val();
+        	console.log(url)
+        	$.getJSON(url,function(data){
+				console.log(data.isExit);
+				if (data.isExit) {
+					if ($(this).data("error")) {
+                		$(this).data("error").remove();
+                		$(this).removeData("error");
+                	}
+					$(this).data("error", $errorMsgRepeat.clone().insertAfter($(this)));
+				}else {
+					$.post('/newitem/');
+				}
+			});
+
+            if ($(this).data("error")) {
+                $(this).data("error").remove();
+                $(this).removeData("error");
+            }
+        }
+    });
+    return toReturn;
+});
+</script>
 </html>

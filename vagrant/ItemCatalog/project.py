@@ -281,6 +281,15 @@ def showItemDetail(category_name,item_name):
 		print 'public'
 		return render_template('publicitemdetail.html', item=item)
 
+@app.route('/check/<path:category_name>/<path:item_name>/')
+def checkIfAlreadyExist(category_name,item_name):
+	category = session.query(Category).filter_by(name=category_name).one()
+	items = session.query(Item).filter_by(category_id=category.id, 
+											name=item_name).all()
+	if len(items) == 0:
+		return jsonify(isExit=False)
+	else:
+		return jsonify(isExit=True)
 
 @app.route('/category/<path:category_name>/<path:item_name>/edit/', methods=['GET','POST'])
 def editItem(category_name, item_name):

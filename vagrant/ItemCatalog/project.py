@@ -407,7 +407,8 @@ def uploaded_file(filename):
 def categorybd(filename):
 	return send_from_directory('static/categorybd',filename)
 
-# delete item
+# delete item 
+# use token for prevent CSRF
 @app.route('/category/<path:category_name>/<path:item_name>/delete/', methods=['GET','POST'])
 def deleteItem(category_name,item_name):
 	if 'username' not in login_session:

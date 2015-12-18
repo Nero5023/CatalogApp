@@ -47,12 +47,37 @@ def showCategories():
 		return render_template('categories.html', categories=categories,
 							items=items)
 
+# Oauth login
 @app.route('/login')
 def showLogin():
 	state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
 	login_session['state'] = state
 	return render_template('login.html', STATE=state)
+
+# Oauth disconnect
+@app.route('/disconnect')
+def disconnect():
+    if 'provider' in login_session:
+        if login_session['provider'] == 'google':
+            gdisconnect()
+            del login_session['gplus_id']
+            del login_session['credentials']
+        if login_session['provider'] == 'facebook':
+            fbdisconnect()
+            del login_session['facebook_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        del login_session['user_id']
+        del login_session['provider']
+        flash("You have successfully been logged out.")
+        print "success log out"
+        return redirect(url_for('showCategories'))
+    else:
+        flash("You were not logged in")
+        return redirect(url_for('showCategories'))
+
 
 
 @app.route('/gconnect', methods=['POST'])
@@ -235,7 +260,7 @@ def fbdisconnect():
     result = h.request(url, 'DELETE')[1]
     return "You have been logged out"
 
-
+# user help method
 def createUser(login_session):
 	newUser = User(name=login_session['username'], email=login_session['email'],
 				picture=login_session['picture'])
@@ -270,6 +295,7 @@ def showCategoryItems(category_name):
 			category_name=category_name, items=items)
 
 
+# Show item detials
 @app.route('/category/<path:category_name>/<path:item_name>/')
 def showItemDetail(category_name,item_name):
 	category = session.query(Category).filter_by(name=category_name).one()
@@ -281,6 +307,7 @@ def showItemDetail(category_name,item_name):
 		print 'public'
 		return render_template('publicitemdetail.html', item=item)
 
+# Check item in category if is already exist
 @app.route('/check/<path:category_name>/<path:item_name>/')
 def checkIfAlreadyExist(category_name,item_name):
 	category = session.query(Category).filter_by(name=category_name).one()
@@ -291,6 +318,7 @@ def checkIfAlreadyExist(category_name,item_name):
 	else:
 		return jsonify(isExist=True)
 
+# Edit item
 @app.route('/category/<path:category_name>/<path:item_name>/edit/', methods=['GET','POST'])
 def editItem(category_name, item_name):
 	if 'username' not in login_session:
@@ -323,6 +351,7 @@ def editItem(category_name, item_name):
 		return render_template('editornewitem.html', categories=categories, 
 			item=editItem,category_name=category_name, isEdit=True)
 
+# New item
 @app.route('/newitem/', methods=['GET','POST'])
 def newItem():
 	if 'username' not in login_session:
@@ -346,6 +375,39 @@ def newItem():
 		return render_template('editornewitem.html', categories=categories,
 							isEdit=False)
 
+
+def alertScript(method, name):
+    return "<script>function alertFunc() {alert('You are not authorized to %s \
+        this %s. Please create your own %s in order to %s.');}\
+        </script><body onload='alertFunc()'>" % (method, name, name, method)
+
+# upload file help methond
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.',1)[1] in ALLOWED_EXTENSIONS
+
+def uploadFile():
+		file = request.files['file']
+		if file and allowed_file(file.filename):
+			filename = secure_filename(file.filename)
+			path = url_for('uploaded_file',filename=filename)
+			# check in database if have the same name of the picture
+			if session.query(Item).filter_by(picture=path).all() != []:
+				filename = '0' + filename
+				path = url_for('uploaded_file',filename=filename)
+			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+			print url_for('uploaded_file',filename=filename)
+			return url_for('uploaded_file',filename=filename)
+		return None
+
+@app.route('/upload/<filename>')
+def uploaded_file(filename):
+	return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/categorybd/<filename>')
+def categorybd(filename):
+	return send_from_directory('static/categorybd',filename)
+
+# delete item
 @app.route('/category/<path:category_name>/<path:item_name>/delete/', methods=['GET','POST'])
 def deleteItem(category_name,item_name):
 	if 'username' not in login_session:
@@ -376,7 +438,8 @@ def deleteItem(category_name,item_name):
 		resp.set_cookie('cookie_token', token)
 		return resp
 
-
+# help method for categoriesJSON
+# make categories info into a dic 
 def getCategoiresDic():
 	categories = session.query(Category).order_by(asc(Category.name)).all()
 	categoriesDic = []
@@ -386,7 +449,7 @@ def getCategoiresDic():
 		dic['Item'] = [item.serialize for item in items]
 		categoriesDic.append(dic)
 
-
+# return categories json info
 @app.route('/catalog.json')
 def categoriesJSON():
 	categories = session.query(Category).order_by(asc(Category.name)).all()
@@ -400,6 +463,7 @@ def categoriesJSON():
 	print jsonlist
 	return jsonify(category=jsonlist)
 
+# return categories xml json
 @app.route('/catalog.xml')
 def categoriesXML():
 	categories = session.query(Category).order_by(asc(Category.name)).all()
@@ -464,70 +528,6 @@ def categoriesXML():
 	print dom.toprettyxml()
 	return dom.toprettyxml()
 
-@app.route('/disconnect')
-def disconnect():
-    if 'provider' in login_session:
-        if login_session['provider'] == 'google':
-            gdisconnect()
-            del login_session['gplus_id']
-            del login_session['credentials']
-        if login_session['provider'] == 'facebook':
-            fbdisconnect()
-            del login_session['facebook_id']
-        del login_session['username']
-        del login_session['email']
-        del login_session['picture']
-        del login_session['user_id']
-        del login_session['provider']
-        flash("You have successfully been logged out.")
-        print "success log out"
-        return redirect(url_for('showCategories'))
-    else:
-        flash("You were not logged in")
-        return redirect(url_for('showCategories'))
-
-
-def allowed_file(filename):
-	return '.' in filename and filename.rsplit('.',1)[1] in ALLOWED_EXTENSIONS
-
-def uploadFile():
-		file = request.files['file']
-		if file and allowed_file(file.filename):
-			filename = secure_filename(file.filename)
-			path = url_for('uploaded_file',filename=filename)
-			# check in database if have the same name of the picture
-			if session.query(Item).filter_by(picture=path).all() != []:
-				filename = '0' + filename
-				path = url_for('uploaded_file',filename=filename)
-			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-			print url_for('uploaded_file',filename=filename)
-			return url_for('uploaded_file',filename=filename)
-		return None
-
-@app.route('/upload/<filename>')
-def uploaded_file(filename):
-	return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-@app.route('/categorybd/<filename>')
-def categorybd(filename):
-	return send_from_directory('static/categorybd',filename)
-
-def alertScript(method, name):
-    return "<script>function alertFunc() {alert('You are not authorized to %s \
-        this %s. Please create your own %s in order to %s.');}\
-        </script><body onload='alertFunc()'>" % (method, name, name, method)
-
-@app.route('/delete')
-def deleInfo():
-	del login_session['username']
-	del login_session['email']
-	del login_session['picture']
-	del login_session['user_id']
-	del login_session['provider']
-	del login_session['facebook_id']
-	response = make_response(json.dumps('Invalid state parameter.'), 200)
-	response.headers['Content-Type'] = 'application/json'
-	return response
 
 if __name__ == '__main__':
 	app.secret_key = 'super_secret_key'

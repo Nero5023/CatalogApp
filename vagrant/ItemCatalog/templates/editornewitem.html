@@ -67,22 +67,19 @@
 </body>
 <script type="text/javascript">
 var $form = $("#newItem"),
-    $errorMsg = $("<span class='error'>This field is required..!!</span>"),
-    $errorMsgRepeat = $("<span class='error'>This item already exits..!!</span>");
-console.log($errorMsgRepeat)
+    $errorMsg = $("<span class='error' style='color:red'>This field is required..!!</span>"),
+    $errorMsgRepeat = $("<span class='error' style='color:red'>This item already exits..!!</span>");
+console.log($errorMsgRepeat);
 
-function checkIsExit(category_name, item_name) {
-	var url = '/check/' + category_name + '/' + item_name;
-	$.getJSON(url,function(data){
-		console.log(data.isExit);
-		return data.isExit;
-	});
-}
 
 $("#submit").on("click", function () {
     // console.log('hello' + checkIsExit('Foosball','test'));
     var toReturn = true;
     $("#inputField", $form).each(function () {
+    	 if ($(this).data("error")) {
+            $(this).data("error").remove();
+            $(this).removeData("error");
+        }
         if ($(this).val() == "") {
             if (!$(this).data("error")) {
                 $(this).data("error", $errorMsg.clone().insertAfter($(this)));
@@ -90,26 +87,25 @@ $("#submit").on("click", function () {
             toReturn = false;
         }
         else {
-        	toReturn = false;
-        	var url = '/check/' + $("#category").val() + '/' + $('#inputField').val();
-        	console.log(url)
-        	$.getJSON(url,function(data){
-				console.log(data.isExit);
-				if (data.isExit) {
-					if ($(this).data("error")) {
-                		$(this).data("error").remove();
-                		$(this).removeData("error");
-                	}
-					$(this).data("error", $errorMsgRepeat.clone().insertAfter($(this)));
-				}else {
-					$.post('/newitem/');
-				}
-			});
+        	// toReturn = false;
+        	var checkUrl = '/check/' + $("#category").val() + '/' + $('#inputField').val();
+        	console.log(checkUrl);
+        	var isExist;
 
-            if ($(this).data("error")) {
-                $(this).data("error").remove();
-                $(this).removeData("error");
-            }
+        	$.ajax({
+        		type: "get",
+        		url: checkUrl,
+        		async: false,
+        		success: function(data) {
+        			isExist = data.isExist;
+        			console.log(isExist);
+        		}
+        	});
+			if (isExist) {
+				toReturn = false;
+				$(this).data("error", $errorMsgRepeat.clone().insertAfter($(this)));
+			}
+           
         }
     });
     return toReturn;

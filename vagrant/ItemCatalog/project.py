@@ -287,9 +287,9 @@ def checkIfAlreadyExist(category_name,item_name):
 	items = session.query(Item).filter_by(category_id=category.id, 
 											name=item_name).all()
 	if len(items) == 0:
-		return jsonify(isExit=False)
+		return jsonify(isExist=False)
 	else:
-		return jsonify(isExit=True)
+		return jsonify(isExist=True)
 
 @app.route('/category/<path:category_name>/<path:item_name>/edit/', methods=['GET','POST'])
 def editItem(category_name, item_name):

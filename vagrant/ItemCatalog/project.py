@@ -357,14 +357,24 @@ def deleteItem(category_name,item_name):
 	if itemToDelete.user_id != login_session['user_id']:
 		return alertScript('delete', 'item')
 	if request.method == 'POST':
-		session.delete(itemToDelete)
-		session.commit()
-		print 'success'
-		flash('%s Successfully delete' % itemToDelete.name)
-		return redirect(url_for('showCategories'))
+		token = request.cookies.get('cookie_token')
+		if request.form['cookie_token'] == token:
+			session.delete(itemToDelete)
+			session.commit()
+			print 'success'
+			flash('%s Successfully delete' % itemToDelete.name)
+			return redirect(url_for('showCategories'))
+		else:
+			response = make_response(json.dumps('Invalid token parameter.'), 401)
+        	response.headers['Content-Type'] = 'application/json'
+        	return response
 	else:
-		return render_template('deleteitem.html',
-					category_name=category_name,item_name=item_name)
+		token = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for x in xrange(32))
+		resp = make_response(render_template('deleteitem.html',
+					category_name=category_name,item_name=item_name, cookie_token=token))
+		resp.set_cookie('cookie_token', token)
+		return resp
 
 
 def getCategoiresDic():

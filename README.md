@@ -24,7 +24,7 @@ VirtualBox is the software that actually runs the VM. You can download it from [
 **VirtualBox Error on Mac 22-AUG-15** If you encounter a problem running the command "vagrant up" on a Mac (found later in these instructions) the issue may be with the version of VirtualBox installed. Uninstall both VirtualBox and Vagrant and use the latest test build of VirtualBox for Mac found here https://www.virtualbox.org/wiki/Testbuilds and then install Vagrant as per the instructions below. Error message on VirtualBox "Failed to load VMMR0.r0 (VERR_VMM_SMAP_BUT_AC_CLEAR)." Error message on Vagrant "The guest machine entered an invalid state while waiting for it to boot. Valid states are 'starting, running'. The machine is in the 'poweroff' state. Please verify everything is configured properly and try again." Ubuntu 14.04   
 **Note:** If you are running Ubuntu 14.04, install VirtualBox using the Ubuntu Software Center, not the virtualbox.org web site. Due to a reported bug, installing VirtualBox from the site may uninstall other software you need.
 #### Vagrant: 
-Vagrant is the software that configures the VM and lets you share files between your host computer and the VM's filesystem. You cand download it from [here](https://www.vagrantup.com/downloads). Install the version for your operating system.
+Vagrant is the software that configures the VM and lets you share files between your host computer and the VM's filesystem. You cand download it from [here](https://www.vagrantup.com/downloads.html). Install the version for your operating system.
 **Windows:** Use the Git Bash program (installed with Git) to get a Unix-style terminal. Make sure to run as administrator. Other systems: Use your favorite terminal program.
 
 
